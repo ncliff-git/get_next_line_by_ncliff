@@ -6,76 +6,94 @@
 /*   By: ncliff <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/04 21:35:22 by ncliff            #+#    #+#             */
-/*   Updated: 2020/11/04 21:35:24 by ncliff           ###   ########.fr       */
+/*   Updated: 2020/11/07 20:50:46 by ncliff           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-/*
-
-	Количество четаемых символов за раз = BUFFER_SIZE
-
-*/
-#include <stdio.h>
 #include "get_next_line.h"
 
-//static int 	get_read(char *s, int *i)
-//{
-//	while (s[i] != '\0')
-//	{
-//		if (s[i] == '\n')
-//			retutn (1);
-//		i++;
-//	}
-//	return (0);
-//}
+char		*ft_strchr(const char *s, int c)
+{
+	int i;
+
+	i = 0;
+	while (s[i] != '\0')
+	{
+		if (s[i] == c)
+			return ((char *)s + i);
+		i++;
+	}
+	if (s[i] == c)
+		return ((char *)s + i);
+	return (NULL);
+}
+
+char		*ft_strnew(size_t n)
+{
+	char	*str;
+
+	if (!(str = (char*)malloc(n * sizeof(char) + 1)))
+		return (NULL);
+	str[n] = 0;
+	while (n--)
+		str[n] = 0;
+	return (str);
+}
+
+void		ft_strclr(char *s)
+{
+	int	i;
+
+	i = 0;
+	while (s && *(s + i))
+	{
+		*(s + i) = '\0';
+		i++;
+	}
+}
+
+char		*check_remitor(char *s_buf, char **line)
+{
+	char	*n;
+
+	n = NULL;
+	if (s_buf)
+		if ((n = ft_strchr(s_buf, '\n')))
+		{
+			*n = 0;
+			*line = ft_strdup(s_buf);
+			ft_strcpy(s_buf, ++n);
+		}
+		else
+		{
+			*line = ft_strdup(s_buf);
+			ft_strclr(s_buf);
+		}
+	else
+		*line = ft_strnew(1);
+	return (n);
+}
 
 int			get_next_line(int fd, char **line)
 {
-	static char		*buf;
-	static char		*bufer;
-	static size_t	n;
-	size_t			i;
-
-	if (fd < 0)
-		return (-1);
-	if (buf == NULL)
+	static char		*s_buf;
+	char			buf[BUFFER_SIZE + 1];
+	int				b_read;
+	char			*n;
+	char			*lst_line;
+	
+	n = check_remitor(s_buf, line);
+	while (!n && (b_read = read(fd, buf, BUFFER_SIZE)))
 	{
-		n = 0;
-		bufer = NULL;
-	}
-	if (!buf)
-		buf = malloc(1 + sizeof(char) * BUFFER_SIZE);
-	else
-		buf = ft_strjoin(bufer, buf, BUFFER_SIZE);
-	if (!buf)
-		free(buf);
-	while (read(fd, buf, BUFFER_SIZE))
-	{
-		n = BUFFER_SIZE + n;
-		i = 0;
-		if(bufer)
-			buf = ft_strjoin(buf, bufer, BUFFER_SIZE);
-		bufer = ft_strdup(buf);
-		while (i < n)
+		buf[b_read] = 0;
+		if ((n = ft_strchr(buf, '\n')))
 		{
-//			printf("%d\n", i);
-			if (buf[i] == '\n')
-			{
-				*line = ft_substr(buf, 0, i);
-				n++;
-				return (1);
-			}
-//			printf("%d\n", i);
-			if (buf[i] == '\0')
-			{
-				*line = ft_substr(buf, 0, i);
-				line[--i] = 0;
-				return (0);
-			}
-//			printf("%d\n", i);
-			i++;
+			*n = 0;
+			s_buf = ft_strdup(++n);
 		}
-//		printf("%d\n", i);
+		lst_line = *line;
+		*line = ft_strjoin(*line, buf);
+		free(lst_line);
 	}
-	return (0);
+	return (b_read || ft_strlen(s_buf) || ft_strlen(*line) ? 1 : 0);
 }
