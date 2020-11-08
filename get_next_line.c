@@ -52,7 +52,7 @@ void		ft_strclr(char *s)
 	}
 }
 
-char		*check_remitor(char *s_buf, char **line)
+char		*chk_buf(char *s_buf, char **line)
 {
 	char	*n;
 
@@ -77,23 +77,25 @@ char		*check_remitor(char *s_buf, char **line)
 int			get_next_line(int fd, char **line)
 {
 	static char		*s_buf;
-	char			buf[BUFFER_SIZE + 1];
+	char			*buf;
 	int				b_read;
 	char			*n;
-	char			*lst_line;
-	
-	n = check_remitor(s_buf, line);
+
+	if (BUFFER_SIZE < 0
+		|| !(buf = (char *)malloc(BUFFER_SIZE * sizeof(char) + 1)))
+		return (-1);
+	n = chk_buf(s_buf, line);
 	while (!n && (b_read = read(fd, buf, BUFFER_SIZE)))
 	{
+		if (b_read < 0)
+			return (-1);
 		buf[b_read] = 0;
 		if ((n = ft_strchr(buf, '\n')))
 		{
 			*n = 0;
 			s_buf = ft_strdup(++n);
 		}
-		lst_line = *line;
 		*line = ft_strjoin(*line, buf);
-		free(lst_line);
 	}
 	return (b_read || ft_strlen(s_buf) || ft_strlen(*line) ? 1 : 0);
 }

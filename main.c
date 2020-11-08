@@ -23,4 +23,6 @@ int main() {
         free(line);
         line = 0;
 	}
+    if (ret == -1)
+        write(1, "ERROR\n", 6);
 }
